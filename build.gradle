@@ -27,21 +27,6 @@ repositories {
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
     exclude '.cache'
-    // Registry tag directories are singular in Minecraft 1.21. The migration
-    // script creates these replacements before resources are packaged.
-    exclude 'data/mantle/tags/blocks/**'
-    exclude 'data/mantle/tags/fluids/**'
-}
-
-// Minecraft 1.21 replaced FinishedRecipe with RecipeOutput. Runtime recipes and
-// the already-generated data remain enabled while the legacy datagen builders
-// are migrated separately.
-sourceSets.main.java {
-    exclude 'slimeknights/mantle/datagen/*Provider.java'
-    exclude 'slimeknights/mantle/recipe/data/**'
-    exclude 'slimeknights/mantle/recipe/cooking/CookingRecipeBuilder.java'
-    exclude 'slimeknights/mantle/recipe/crafting/*Builder.java'
-    exclude 'slimeknights/mantle/recipe/helper/SimpleFinishedRecipe.java'
 }
 
 neoForge {
@@ -53,6 +38,16 @@ neoForge {
     accessTransformers.from 'src/main/resources/META-INF/accesstransformer.cfg'
     mods {
         mantle { sourceSet sourceSets.main }
+    }
+    runs {
+        client { client() }
+        data {
+            data()
+            programArguments.addAll '--mod', 'mantle', '--all',
+                    '--output', file('src/generated/resources/').absolutePath,
+                    '--existing', file('src/main/resources/').absolutePath
+        }
+        configureEach { gameDirectory = file('run') }
     }
 }
 

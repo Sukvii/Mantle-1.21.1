@@ -5,7 +5,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
@@ -91,8 +92,15 @@ public class MantleFluidTransferProvider extends AbstractFluidContainerTransferP
     // we can always fill water bottles, not always fill splash and lingering
     addTransfer(prefix + "fill_water", new FillFluidContainerTransfer(
       container,
-      ItemOutput.fromStack(PotionUtils.setPotion(new ItemStack(filled), Potions.WATER)),
+      ItemOutput.fromStack(waterPotion(filled)),
       FluidIngredient.of(MantleTags.Fluids.WATER, MantleValues.BOTTLE * 2)),
       waterConditions);
+  }
+
+  /** Creates a water potion using the 1.21 potion contents data component. */
+  private static ItemStack waterPotion(ItemLike filled) {
+    ItemStack stack = new ItemStack(filled);
+    stack.set(DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER));
+    return stack;
   }
 }

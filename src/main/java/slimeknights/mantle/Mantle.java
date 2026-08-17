@@ -3,6 +3,9 @@ package slimeknights.mantle;
 import net.minecraft.Util;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -15,6 +18,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -23,6 +27,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig.Type;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -51,6 +56,11 @@ import slimeknights.mantle.data.predicate.fluid.FluidPredicate;
 import slimeknights.mantle.data.predicate.fluid.FluidTypePredicate;
 import slimeknights.mantle.data.predicate.item.ItemPredicate;
 import slimeknights.mantle.datagen.MantleTags;
+import slimeknights.mantle.datagen.MantleBlockTagProvider;
+import slimeknights.mantle.datagen.MantleFluidTagProvider;
+import slimeknights.mantle.datagen.MantleFluidTooltipProvider;
+import slimeknights.mantle.datagen.MantleFluidTransferProvider;
+import slimeknights.mantle.datagen.MantleMenuTagProvider;
 import slimeknights.mantle.fluid.transfer.EmptyFluidContainerTransfer;
 import slimeknights.mantle.fluid.transfer.EmptyFluidWithNBTTransfer;
 import slimeknights.mantle.fluid.transfer.EmptyPotionTransfer;
@@ -77,6 +87,7 @@ import slimeknights.mantle.util.OffhandCooldownTracker;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Mantle
@@ -106,6 +117,7 @@ public class Mantle {
     instance = this;
     MantleNetwork.registerPackets();
     bus.addListener(EventPriority.NORMAL, false, FMLCommonSetupEvent.class, this::commonSetup);
+    bus.addListener(EventPriority.NORMAL, false, GatherDataEvent.class, this::gatherData);
     bus.addListener(EventPriority.NORMAL, false, RegisterCapabilitiesEvent.class, this::registerCapabilities);
     bus.addListener(EventPriority.NORMAL, false, RegisterPayloadHandlersEvent.class, MantleNetwork::registerPayloads);
     bus.addListener(EventPriority.NORMAL, false, RegisterEvent.class, this::register);
@@ -137,6 +149,20 @@ public class Mantle {
     OffhandCooldownTracker.init();
     TagPreference.init();
     LootTableInjector.init();
+  }
+
+  /** Registers Mantle's generated data providers. */
+  private void gatherData(final GatherDataEvent event) {
+    DataGenerator generator = event.getGenerator();
+    PackOutput packOutput = generator.getPackOutput();
+    CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+    ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
+    boolean server = event.includeServer();
+    generator.addProvider(server, new MantleBlockTagProvider(packOutput, lookupProvider, existingFileHelper));
+    generator.addProvider(server, new MantleFluidTagProvider(packOutput, lookupProvider, existingFileHelper));
+    generator.addProvider(server, new MantleMenuTagProvider(packOutput, lookupProvider, existingFileHelper));
+    generator.addProvider(server, new MantleFluidTransferProvider(packOutput));
+    generator.addProvider(event.includeClient(), new MantleFluidTooltipProvider(packOutput));
   }
 
   private void register(RegisterEvent event) {

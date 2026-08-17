@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.EncoderException;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.Item;
@@ -48,6 +49,9 @@ public class ItemStackLoadable {
     CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
     return data.isEmpty() ? null : data.copyTag();
   });
+  /** Component changes applied to this stack. Required for 1.21 item data such as potion contents. */
+  private static final LoadableField<DataComponentPatch,ItemStack> COMPONENTS = new CodecLoadable<>(DataComponentPatch.CODEC)
+    .defaultField("components", DataComponentPatch.EMPTY, ItemStack::getComponentsPatch);
 
 
   /* Optional */
@@ -76,10 +80,16 @@ public class ItemStackLoadable {
 
   /** Makes an item stack from the given parameters */
   private static ItemStack makeStack(Item item, int count, @Nullable CompoundTag nbt) {
+    return makeStack(item, count, nbt, DataComponentPatch.EMPTY);
+  }
+
+  /** Creates a stack with legacy custom NBT and 1.21 data components. */
+  private static ItemStack makeStack(Item item, int count, @Nullable CompoundTag nbt, DataComponentPatch components) {
     if (item == Items.AIR || count == 0) {
       return ItemStack.EMPTY;
     }
     ItemStack stack = new ItemStack(item, count);
+    stack.applyComponents(components);
     if (nbt != null) {
       stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
     }
@@ -112,7 +122,7 @@ public class ItemStackLoadable {
       if (this == READ_COUNT) {
         count = COUNT.get(json, context);
       }
-      return makeStack(ITEM.get(json, context), count, NBT.get(json, context));
+      return makeStack(ITEM.get(json, context), count, NBT.get(json, context), COMPONENTS.get(json, context));
     }
 
     @Override
@@ -122,6 +132,7 @@ public class ItemStackLoadable {
         COUNT.serialize(stack, json);
       }
       NBT.serialize(stack, json);
+      COMPONENTS.serialize(stack, json);
     }
 
 
@@ -137,7 +148,7 @@ public class ItemStackLoadable {
 
     @Override
     public JsonElement serialize(ItemStack stack) {
-      if ((this == FIXED_COUNT || stack.getCount() == 1) && stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty()) {
+      if ((this == FIXED_COUNT || stack.getCount() == 1) && stack.getComponentsPatch().isEmpty()) {
         return OPTIONAL_ITEM.serialize(stack);
       }
       return RecordLoadable.super.serialize(stack);
