@@ -1,5 +1,9 @@
 package slimeknights.mantle.recipe.crafting;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
@@ -89,14 +93,11 @@ public class ShapedRetexturedRecipeBuilder {
   }
 
   private RecipeOutput wrap(RecipeOutput output) {
-    Ingredient texture = this.texture;
-    if (textureKey != '\0') {
-      throw new IllegalStateException("Texture key is not supported by the 1.21 recipe codec");
-    }
     return new RecipeOutput() {
       @Override
       public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
-        output.accept(id, new ShapedRetexturedRecipe((ShapedRecipe)recipe, texture, matchAll), advancement, conditions);
+        ShapedRecipe shaped = (ShapedRecipe)recipe;
+        output.accept(id, new ShapedRetexturedRecipe(shaped, textureSource(shaped), matchAll), advancement, conditions);
       }
 
       @Override
@@ -104,5 +105,20 @@ public class ShapedRetexturedRecipeBuilder {
         return output.advancement();
       }
     };
+  }
+
+  /** Resolves a legacy pattern symbol from the shaped recipe's codec data. */
+  private Ingredient textureSource(ShapedRecipe recipe) {
+    if (texture != null) {
+      return texture;
+    }
+    JsonObject json = ShapedRecipe.Serializer.CODEC.codec().encodeStart(JsonOps.INSTANCE, recipe)
+      .getOrThrow(JsonParseException::new).getAsJsonObject();
+    JsonObject key = json.getAsJsonObject("key");
+    JsonElement source = key == null ? null : key.get(String.valueOf(textureKey));
+    if (source == null) {
+      throw new IllegalStateException("Texture symbol '" + textureKey + "' is not defined in the shaped recipe");
+    }
+    return Ingredient.CODEC_NONEMPTY.parse(JsonOps.INSTANCE, source).getOrThrow(JsonParseException::new);
   }
 }
