@@ -13,7 +13,6 @@ import net.neoforged.neoforge.common.conditions.ICondition;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 /** Builder for a shaped recipe with fallbacks */
 @SuppressWarnings("unused")

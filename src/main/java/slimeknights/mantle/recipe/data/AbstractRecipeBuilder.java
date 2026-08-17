@@ -84,9 +84,12 @@ public abstract class AbstractRecipeBuilder<T extends AbstractRecipeBuilder<T>> 
   private AdvancementHolder buildAdvancementInternal(RecipeOutput output, ResourceLocation id, String folder) {
     Advancement.Builder advancement = output.advancement()
         .rewards(AdvancementRewards.Builder.recipe(id))
-        .requirements(AdvancementRequirements.Strategy.OR)
-        .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id));
-    this.criteria.forEach(advancement::addCriterion);
+        .requirements(AdvancementRequirements.Strategy.OR);
+    // Match the upstream behavior: an explicitly supplied criterion replaces the default one.
+    Map<String,Criterion<?>> advancementCriteria = new LinkedHashMap<>();
+    advancementCriteria.put("has_the_recipe", RecipeUnlockedTrigger.unlocked(id));
+    advancementCriteria.putAll(this.criteria);
+    advancementCriteria.forEach(advancement::addCriterion);
     return advancement.build(id.withPrefix("recipes/" + folder + "/"));
   }
 

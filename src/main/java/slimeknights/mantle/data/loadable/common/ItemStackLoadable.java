@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -166,11 +167,13 @@ public class ItemStackLoadable {
         count = COUNT.decode(buffer, context);
       }
       CompoundTag nbt = buffer.readNbt();
+      DataComponentPatch components = DataComponentPatch.STREAM_CODEC.decode((RegistryFriendlyByteBuf)buffer);
       // not using make stack because we want to set share tag
       if (item == Items.AIR || count <= 0) {
         return ItemStack.EMPTY;
       }
       ItemStack stack = new ItemStack(item, count);
+      stack.applyComponents(components);
       if (nbt != null && !nbt.isEmpty()) {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
       }
@@ -185,6 +188,7 @@ public class ItemStackLoadable {
       }
       CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
       buffer.writeNbt(data.isEmpty() ? null : data.copyTag());
+      DataComponentPatch.STREAM_CODEC.encode((RegistryFriendlyByteBuf)buffer, stack.getComponentsPatch());
     }
   }
 }
