@@ -8,7 +8,7 @@
 
 - Minecraft：`1.21.1`
 - Mod Loader：`NeoForge`
-- 移植版本：`1.12.0-port`
+- 移植版本：`1.12.4`
 - NeoForge：`21.1.241`
 - Java：`21`
 - 状态：开发与适配中，部分内容可能尚未完成
@@ -26,7 +26,9 @@ TinkersConstruct-1.21.1/build/libs/TinkersConstruct-*.jar
 
 ## 构建
 
-在 Mantle 项目目录中执行：
+构建需要 JDK 21。Mantle 可在自身项目目录中独立构建，也可由相邻的 Tinkers' Construct 项目作为复合构建子项目构建。
+
+独立构建时，在 Mantle 项目目录中执行：
 
 ```bash
 gradlew build
