@@ -105,9 +105,18 @@ public class LoadableRecipeSerializer<T extends Recipe<?>> implements LoggingRec
   }
 
   private static class Deprecated<T extends Recipe<?>> extends LoadableRecipeSerializer<T> {
+    private final String replacement;
+
     protected Deprecated(RecordLoadable<T> loadable, String replacement) {
       super(loadable);
-      Mantle.logger.warn("Registered deprecated recipe serializer {}, {}", BuiltInRegistries.RECIPE_SERIALIZER.getKey(this), replacement);
+      this.replacement = replacement;
+    }
+
+    @Override
+    public MapCodec<T> codec() {
+      ResourceLocation id = BuiltInRegistries.RECIPE_SERIALIZER.getKey(this);
+      Mantle.logger.warn("Using deprecated recipe serializer {}, {}", id == null ? getClass().getName() : id, replacement);
+      return super.codec();
     }
   }
 }
