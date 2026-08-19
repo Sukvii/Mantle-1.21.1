@@ -28,6 +28,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent.RegisterGeometryLoaders;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
@@ -61,6 +62,7 @@ import slimeknights.mantle.fluid.texture.FluidTextureManager;
 import slimeknights.mantle.fluid.tooltip.FluidTooltipHandler;
 import slimeknights.mantle.registration.MantleRegistrations;
 import slimeknights.mantle.registration.RegistrationHelper;
+import slimeknights.mantle.recipe.helper.RecipeIdInjector;
 import slimeknights.mantle.util.OffhandCooldownTracker;
 import slimeknights.mantle.util.RegistryHelper;
 
@@ -75,7 +77,10 @@ public class ClientEvents {
   private static final ResourceLocation HOTBAR_ATTACK_BACKGROUND = ResourceLocation.withDefaultNamespace("hud/hotbar_attack_indicator_background");
   private static final ResourceLocation HOTBAR_ATTACK_PROGRESS = ResourceLocation.withDefaultNamespace("hud/hotbar_attack_indicator_progress");
   /** Called on construct to initiatlize things that need early entry */
-  public static void onConstruct() {}
+  public static void onConstruct() {
+    NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RecipesUpdatedEvent.class,
+      event -> RecipeIdInjector.inject(event.getRecipeManager()));
+  }
 
   @SuppressWarnings("ConstantConditions")
   @SubscribeEvent

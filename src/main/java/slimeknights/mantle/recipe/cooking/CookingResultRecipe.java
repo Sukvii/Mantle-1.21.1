@@ -5,10 +5,11 @@ import net.minecraft.world.item.crafting.CookingBookCategory;
 import slimeknights.mantle.data.loadable.field.LoadableField;
 import slimeknights.mantle.data.loadable.primitive.EnumLoadable;
 import slimeknights.mantle.data.loadable.primitive.FloatLoadable;
+import slimeknights.mantle.recipe.IRecipeIdAware;
 import slimeknights.mantle.recipe.helper.ItemOutput;
 
 /** Simplifies the serializers for result recipes */
-public interface CookingResultRecipe {
+public interface CookingResultRecipe extends IRecipeIdAware {
   LoadableField<CookingBookCategory, AbstractCookingRecipe> CATEGORY_FIELD = new EnumLoadable<>(CookingBookCategory.class).defaultField("category", CookingBookCategory.MISC, true, AbstractCookingRecipe::category);
   LoadableField<Float, AbstractCookingRecipe> EXPERIENCE_FIELD = FloatLoadable.FROM_ZERO.defaultField("experience",0f, AbstractCookingRecipe::getExperience);
   LoadableField<ItemOutput,CookingResultRecipe> RESULT_FIELD = ItemOutput.Loadable.REQUIRED_STACK.requiredField("result", CookingResultRecipe::getResult);

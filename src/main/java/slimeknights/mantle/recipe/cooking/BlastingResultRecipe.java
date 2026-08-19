@@ -29,10 +29,17 @@ public class BlastingResultRecipe extends BlastingRecipe implements CookingResul
     RESULT_FIELD, EXPERIENCE_FIELD, COOKING_TIME_FIELD,
     BlastingResultRecipe::new);
 
+  private ResourceLocation id;
   private final ItemOutput result;
   public BlastingResultRecipe(ResourceLocation id, String group, CookingBookCategory category, Ingredient ingredient, ItemOutput result, float experience, int cookingTime) {
     super(group, category, ingredient, ItemStack.EMPTY, experience, cookingTime);
+    this.id = id;
     this.result = result;
+  }
+
+  @Override
+  public void setId(ResourceLocation id) {
+    this.id = id;
   }
 
   @Override

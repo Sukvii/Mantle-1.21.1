@@ -77,6 +77,7 @@ import slimeknights.mantle.recipe.condition.TagCombinationCondition;
 import slimeknights.mantle.recipe.condition.TagEmptyCondition;
 import slimeknights.mantle.recipe.condition.TagFilledCondition;
 import slimeknights.mantle.recipe.helper.TagPreference;
+import slimeknights.mantle.recipe.helper.RecipeIdInjector;
 import slimeknights.mantle.recipe.ingredient.FluidContainerIngredient;
 import slimeknights.mantle.recipe.ingredient.PotionDisplayIngredient;
 import slimeknights.mantle.recipe.ingredient.PotionIngredient;
@@ -148,6 +149,7 @@ public class Mantle {
     MantleCommand.init();
     OffhandCooldownTracker.init();
     TagPreference.init();
+    RecipeIdInjector.init();
     LootTableInjector.init();
   }
 

@@ -29,10 +29,17 @@ public class SmokingResultRecipe extends SmokingRecipe implements CookingResultR
     RESULT_FIELD, EXPERIENCE_FIELD, COOKING_TIME_FIELD,
     SmokingResultRecipe::new);
 
+  private ResourceLocation id;
   private final ItemOutput result;
   public SmokingResultRecipe(ResourceLocation id, String group, CookingBookCategory category, Ingredient ingredient, ItemOutput result, float experience, int cookingTime) {
     super(group, category, ingredient, ItemStack.EMPTY, experience, cookingTime);
+    this.id = id;
     this.result = result;
+  }
+
+  @Override
+  public void setId(ResourceLocation id) {
+    this.id = id;
   }
 
   @Override

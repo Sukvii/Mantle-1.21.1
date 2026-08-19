@@ -10,6 +10,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.recipe.IMultiRecipe;
+import slimeknights.mantle.recipe.IRecipeIdAware;
 
 import java.util.Comparator;
 import java.util.List;
@@ -93,7 +94,10 @@ public class RecipeHelper {
           boolean m2 = r2 instanceof IMultiRecipe<?>;
           if (m1 && !m2) return 1;
           if (!m1 && m2) return -1;
-          // Codec-backed recipes no longer own their IDs in 1.21; class name is stable for display.
+          // Mantle recipes retain their holder ID for integrations such as JEI.
+          if (r1 instanceof IRecipeIdAware id1 && r2 instanceof IRecipeIdAware id2) {
+            return id1.getId().compareTo(id2.getId());
+          }
           return r1.getClass().getName().compareTo(r2.getClass().getName());
         })
         .flatMap((recipe) -> {
