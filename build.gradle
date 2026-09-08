@@ -29,6 +29,13 @@ sourceSets.main.resources {
     exclude '.cache'
 }
 
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
 neoForge {
     version = project.neo_version
     parchment {
@@ -64,7 +71,8 @@ tasks.named('processResources', ProcessResources).configure {
             version: mantle_version,
             loader_range: loader_range,
             minecraft_range: minecraft_range,
-            neo_range: neo_range
+            neo_range: neo_range,
+            jei_range: jei_range
     ]
     inputs.properties replaceProperties
     filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {

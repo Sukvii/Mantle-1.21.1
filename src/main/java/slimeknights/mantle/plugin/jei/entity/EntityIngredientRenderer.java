@@ -2,6 +2,7 @@ package slimeknights.mantle.plugin.jei.entity;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.RequiredArgsConstructor;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -19,7 +20,9 @@ import net.minecraft.world.level.Level;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import slimeknights.mantle.Mantle;
+import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.recipe.ingredient.EntityIngredient;
+import slimeknights.mantle.recipe.ingredient.EntityIngredient.EntityInput;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -130,13 +133,25 @@ public class EntityIngredientRenderer implements IIngredientRenderer<EntityIngre
     }
   }
 
+  @SuppressWarnings("removal")
   @Override
-  public List<Component> getTooltip(EntityIngredient.EntityInput type, TooltipFlag flag) {
+  public List<Component> getTooltip(EntityIngredient.EntityInput ingredient, TooltipFlag flag) {
+    EntityType<?> type = ingredient.type();
     List<Component> tooltip = new ArrayList<>();
-    tooltip.add(type.type().getDescription());
+    tooltip.add(type.getDescription());
     if (flag.isAdvanced()) {
-      tooltip.add((Component.literal(BuiltInRegistries.ENTITY_TYPE.getKey(type.type()).toString())).withStyle(ChatFormatting.DARK_GRAY));
+      tooltip.add(Component.literal(Loadables.ENTITY_TYPE.getString(type)).withStyle(ChatFormatting.DARK_GRAY));
     }
     return tooltip;
+  }
+
+  @SuppressWarnings("removal")
+  @Override
+  public void getTooltip(ITooltipBuilder tooltip, EntityInput ingredient, TooltipFlag flag) {
+    EntityType<?> type = ingredient.type();
+    tooltip.add(type.getDescription());
+    if (flag.isAdvanced()) {
+      tooltip.add(Component.literal(Loadables.ENTITY_TYPE.getString(type)).withStyle(ChatFormatting.DARK_GRAY));
+    }
   }
 }
