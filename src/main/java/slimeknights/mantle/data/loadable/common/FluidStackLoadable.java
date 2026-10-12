@@ -1,7 +1,8 @@
 package slimeknights.mantle.data.loadable.common;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -28,7 +29,8 @@ public class FluidStackLoadable {
   /** Getter for an item from a stack */
   private static final Function<FluidStack,Fluid> FLUID_GETTER = FluidStack::getFluid;
   /** Checks if a stack can be serialized to a primitive, ignoring count */
-  private static final Predicate<FluidStack> COMPACT_NBT = stack -> stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty();
+  private static final Predicate<FluidStack> COMPACT_NBT = stack -> stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty()
+                                                                    && stack.getComponentsPatch().isEmpty();
   /** Maps a fluid stack that may be empty to a strictly not empty one */
   private static final BiFunction<FluidStack,ErrorFactory,FluidStack> NOT_EMPTY = (stack, error) -> {
     if (stack.isEmpty()) {
@@ -47,6 +49,9 @@ public class FluidStackLoadable {
     CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
     return data.isEmpty() ? null : data.copyTag();
   });
+  /** Component changes applied to this stack. Required for 1.21 fluid data such as potion contents. */
+  private static final LoadableField<DataComponentPatch,FluidStack> COMPONENTS = new CodecLoadable<>(DataComponentPatch.CODEC)
+    .defaultField("components", DataComponentPatch.EMPTY, FluidStack::getComponentsPatch);
 
 
   /* Optional */
@@ -57,7 +62,7 @@ public class FluidStackLoadable {
   /** Loadable for a stack that may be empty with NBT and an amount of 1000 */
   public static final RecordLoadable<FluidStack> OPTIONAL_BUCKET_NBT = fixedSizeNBT(FluidType.BUCKET_VOLUME);
   /** Loadable for a stack that may be empty with variable count and NBT */
-  public static final RecordLoadable<FluidStack> OPTIONAL_STACK_NBT = RecordLoadable.create(FLUID, AMOUNT, NBT, FluidStackLoadable::makeStack);
+  public static final RecordLoadable<FluidStack> OPTIONAL_STACK_NBT = RecordLoadable.create(FLUID, AMOUNT, NBT, COMPONENTS, FluidStackLoadable::makeStack);
 
 
   /* Required */
@@ -75,10 +80,16 @@ public class FluidStackLoadable {
 
   /** Makes an item stack from the given parameters */
   private static FluidStack makeStack(Fluid fluid, int amount, @Nullable CompoundTag nbt) {
+    return makeStack(fluid, amount, nbt, DataComponentPatch.EMPTY);
+  }
+
+  /** Creates a fluid stack with legacy custom NBT and 1.21 data components. */
+  private static FluidStack makeStack(Fluid fluid, int amount, @Nullable CompoundTag nbt, DataComponentPatch components) {
     if (fluid == Fluids.EMPTY || amount <= 0) {
       return FluidStack.EMPTY;
     }
     FluidStack stack = new FluidStack(fluid, amount);
+    stack.applyComponents(components);
     if (nbt != null && !nbt.isEmpty()) {
       stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
     }
@@ -98,7 +109,7 @@ public class FluidStackLoadable {
     if (amount <= 0) {
       throw new IllegalArgumentException("Amount must be positive, received " + amount);
     }
-    return RecordLoadable.create(FLUID, NBT, (fluid, tag) -> makeStack(fluid, amount, tag))
+    return RecordLoadable.create(FLUID, NBT, COMPONENTS, (fluid, tag, components) -> makeStack(fluid, amount, tag, components))
                          .compact(OPTIONAL_BUCKET, COMPACT_NBT);
   }
 
