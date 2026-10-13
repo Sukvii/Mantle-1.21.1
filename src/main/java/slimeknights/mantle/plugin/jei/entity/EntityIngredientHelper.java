@@ -12,7 +12,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.DeferredSpawnEggItem;
+import net.minecraft.world.item.SpawnEggItem;
 import slimeknights.mantle.data.loadable.Loadables;
 import slimeknights.mantle.plugin.jei.MantleJEIConstants;
 import slimeknights.mantle.recipe.ingredient.EntityIngredient.EntityInput;
@@ -73,7 +73,7 @@ public class EntityIngredientHelper implements IIngredientHelper<EntityInput> {
 
   @Override
   public ItemStack getCheatItemStack(EntityInput ingredient) {
-    Item egg = DeferredSpawnEggItem.deferredOnlyById(ingredient.type());
+    Item egg = SpawnEggItem.byId(ingredient.type());
     if (egg != null) {
       return new ItemStack(egg);
     }
