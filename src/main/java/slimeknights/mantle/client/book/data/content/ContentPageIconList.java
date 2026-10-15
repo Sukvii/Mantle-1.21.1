@@ -235,9 +235,11 @@ public class ContentPageIconList extends PageContent {
     if (this.title != null) yOff = getTitleHeight();
     if (this.subText != null) yOff = book.fontRenderer.wordWrapHeight(this.subText, 182) * 12 / 9 + 16;
 
-    return HtmlGroup.indent().add(
-      makeTitleHTML(),
-      HtmlElement.p().add(subText).style("padding-left", 10),
+    HtmlGroup group = HtmlGroup.indent().add(makeTitleHTML());
+    if (this.subText != null) {
+      group.add(HtmlElement.p().add(this.subText).style("padding-left", 10));
+    }
+    return group.add(
       HtmlElement.div()
         .classes("grid-icon-list", "grid-icon-list-" + (BookScreen.PAGE_WIDTH - 2 * xOff) / (int) (this.width * getScale(yOff)))
         .style("top", yOff * 2)
