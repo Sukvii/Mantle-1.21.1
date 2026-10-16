@@ -36,6 +36,7 @@ import java.util.Optional;
 public class ShapedRetexturedRecipe extends ShapedRecipe {
   @Getter
   private final Ingredient texture;
+  private final char textureKey;
   private final boolean matchAll;
 
   protected ShapedRetexturedRecipe(ResourceLocation ignoredId, String group, CraftingBookCategory category, int width, int height,
@@ -43,13 +44,19 @@ public class ShapedRetexturedRecipe extends ShapedRecipe {
                                    Ingredient texture, boolean matchAll) {
     super(group, category, new ShapedRecipePattern(width, height, ingredients, Optional.empty()), result, showNotification);
     this.texture = texture;
+    this.textureKey = '\0';
     this.matchAll = matchAll;
   }
 
   protected ShapedRetexturedRecipe(ShapedRecipe original, Ingredient texture, boolean matchAll) {
+    this(original, texture, '\0', matchAll);
+  }
+
+  protected ShapedRetexturedRecipe(ShapedRecipe original, Ingredient texture, char textureKey, boolean matchAll) {
     super(original.getGroup(), original.category(), original.pattern,
       original.getResultItem(RegistryAccess.EMPTY).copy(), original.showNotification());
     this.texture = texture;
+    this.textureKey = textureKey;
     this.matchAll = matchAll;
   }
 
@@ -102,6 +109,7 @@ public class ShapedRetexturedRecipe extends ShapedRecipe {
           JsonElement ingredientJson = key == null ? null : key.get(symbol);
           if (ingredientJson == null) throw new JsonSyntaxException("Texture symbol '" + symbol + "' is not defined in key");
           texture = Ingredient.CODEC_NONEMPTY.parse(JsonOps.INSTANCE, ingredientJson).getOrThrow(JsonParseException::new);
+          return new ShapedRetexturedRecipe(base, texture, symbol.charAt(0), json.has("match_all") && json.get("match_all").getAsBoolean());
         } else {
           texture = Ingredient.CODEC_NONEMPTY.parse(JsonOps.INSTANCE, textureJson).getOrThrow(JsonParseException::new);
           Mantle.logger.warn("Using deprecated full ingredient format for mantle:crafting_shaped_retextured texture");
@@ -112,7 +120,11 @@ public class ShapedRetexturedRecipe extends ShapedRecipe {
       @Override
       public JsonElement serialize(ShapedRetexturedRecipe recipe, DynamicOps<?> ops) {
         JsonObject json = ShapedRecipe.Serializer.CODEC.codec().encodeStart(JsonOps.INSTANCE, recipe).getOrThrow(JsonParseException::new).getAsJsonObject();
-        json.add("texture", Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, recipe.texture).getOrThrow(JsonParseException::new));
+        if (recipe.textureKey != '\0') {
+          json.addProperty("texture", String.valueOf(recipe.textureKey));
+        } else {
+          json.add("texture", Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, recipe.texture).getOrThrow(JsonParseException::new));
+        }
         if (recipe.matchAll) json.addProperty("match_all", true);
         return json;
       }

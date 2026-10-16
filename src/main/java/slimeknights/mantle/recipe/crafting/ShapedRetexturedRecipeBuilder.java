@@ -97,7 +97,7 @@ public class ShapedRetexturedRecipeBuilder {
       @Override
       public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
         ShapedRecipe shaped = (ShapedRecipe)recipe;
-        output.accept(id, new ShapedRetexturedRecipe(shaped, textureSource(shaped), matchAll), advancement, conditions);
+        output.accept(id, new ShapedRetexturedRecipe(shaped, textureSource(shaped), texture == null ? textureKey : '\0', matchAll), advancement, conditions);
       }
 
       @Override

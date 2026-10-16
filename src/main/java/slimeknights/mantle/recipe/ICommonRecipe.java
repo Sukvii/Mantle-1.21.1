@@ -13,28 +13,20 @@ import net.minecraft.world.item.crafting.RecipeInput;
 public interface ICommonRecipe<C extends RecipeInput> extends Recipe<C> {
   @Override
   default ItemStack assemble(C inv, HolderLookup.Provider access) {
-    if (access instanceof RegistryAccess registryAccess) {
-      return assemble(inv, registryAccess);
-    }
-    return getResultItem(access).copy();
+    return assemble(inv, (RegistryAccess) access);
   }
 
-  /** Transitional bridge for recipes still using the pre-1.21 registry access signature. */
-  @Deprecated
+  /** Upstream signature; recipes implement this. */
   default ItemStack assemble(C inv, RegistryAccess access) {
     return getResultItem(access).copy();
   }
 
   @Override
   default ItemStack getResultItem(HolderLookup.Provider access) {
-    if (access instanceof RegistryAccess registryAccess) {
-      return getResultItem(registryAccess);
-    }
-    return ItemStack.EMPTY;
+    return getResultItem((RegistryAccess) access);
   }
 
-  /** Transitional bridge for recipes still using the pre-1.21 registry access signature. */
-  @Deprecated
+  /** Upstream signature; recipes implement this. */
   default ItemStack getResultItem(RegistryAccess access) {
     return ItemStack.EMPTY;
   }

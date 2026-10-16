@@ -96,11 +96,7 @@ public enum LootTableInjector implements IEarlyReloadListener {
   private void injectIntoLoadedTables() {
     RegistryAccess access = registryAccess;
     registryAccess = RegistryAccess.EMPTY; // do not retain the reload's registries
-    Registry<LootTable> tables = access.registry(Registries.LOOT_TABLE).orElse(null);
-    if (tables == null) {
-      Mantle.logger.error("Loot table registry unavailable, skipping {} loot table injections", injections.size());
-      return;
-    }
+    Registry<LootTable> tables = access.registryOrThrow(Registries.LOOT_TABLE);
     for (LootTableInjection injection : injections.values()) {
       LootTable table = tables.get(injection.name());
       if (table == null) {
