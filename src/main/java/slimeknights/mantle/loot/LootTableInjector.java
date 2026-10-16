@@ -3,6 +3,9 @@ package slimeknights.mantle.loot;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -13,7 +16,6 @@ import net.neoforged.neoforge.common.crafting.CraftingHelper;
 import net.neoforged.neoforge.common.conditions.ICondition.IContext;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.LootTableLoadEvent;
 import net.neoforged.bus.api.EventPriority;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.data.listener.IEarlyReloadListener;
@@ -41,9 +43,13 @@ public enum LootTableInjector implements IEarlyReloadListener {
     NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, AddReloadListenerEvent.class, event -> {
       event.addListener(INSTANCE);
       INSTANCE.context = event.getConditionContext();
+      // 1.21 parses loot tables before reload listeners run, so inject into this reload's tables after loading
+      INSTANCE.registryAccess = event.getRegistryAccess();
     });
-    NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, LootTableLoadEvent.class, INSTANCE::lootTableLoad);
   }
+
+  /** Registry access of the reload in progress, containing the loot tables it just parsed */
+  private volatile RegistryAccess registryAccess = RegistryAccess.EMPTY;
 
   /** Condition context for preventing load */
   private IContext context = IContext.EMPTY;
@@ -83,14 +89,25 @@ public enum LootTableInjector implements IEarlyReloadListener {
                          .collect(Collectors.toUnmodifiableMap(LootTableInjection::name, Function.identity()));
     // log timer
     Mantle.logger.info("Loaded {} loot table injectors injecting into {} tables in {} ms", loaded, injections.size(), (System.nanoTime() - time) / 1000000f);
+    injectIntoLoadedTables();
   }
 
-  /** Called on loot table load to handle the actual injection */
-  private void lootTableLoad(LootTableLoadEvent event) {
-    LootTableInjection injection = injections.get(event.getName());
-    if (injection != null) {
+  /** Injects into the tables of the current reload; they are not visible to the running server until the reload completes */
+  private void injectIntoLoadedTables() {
+    RegistryAccess access = registryAccess;
+    registryAccess = RegistryAccess.EMPTY; // do not retain the reload's registries
+    Registry<LootTable> tables = access.registry(Registries.LOOT_TABLE).orElse(null);
+    if (tables == null) {
+      Mantle.logger.error("Loot table registry unavailable, skipping {} loot table injections", injections.size());
+      return;
+    }
+    for (LootTableInjection injection : injections.values()) {
+      LootTable table = tables.get(injection.name());
+      if (table == null) {
+        Mantle.logger.warn("Failed to inject loot into missing table {}", injection.name());
+        continue;
+      }
       Mantle.logger.debug("Injecting into {} pools in the table {}", injection.pools().size(), injection.name());
-      LootTable table = event.getTable();
       for (LootPoolInjection pool : injection.pools()) {
         pool.inject(table);
       }
