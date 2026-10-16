@@ -8,7 +8,7 @@
 
 - Minecraft：`1.21.1`
 - Mod Loader：`NeoForge`
-- 移植版本：`1.12.4`
+- 移植版本：`1.12.5`
 - NeoForge：`21.1.241`
 - Java：`21`
 - 对应 Tinkers' Construct：`3.12.5`

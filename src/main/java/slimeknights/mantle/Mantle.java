@@ -110,7 +110,7 @@ public class Mantle {
   /* Proxies for sides, used for graphics processing */
   public Mantle(IEventBus bus, ModContainer container) {
     container.registerConfig(Type.CLIENT, Config.CLIENT_SPEC);
-    container.registerConfig(Type.SERVER, Config.SERVER_SPEC);
+    container.registerConfig(Type.COMMON, Config.COMMON_SPEC);
 
     FluidContainerTransferManager.INSTANCE.init();
     MantleTags.init();

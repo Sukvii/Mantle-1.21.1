@@ -31,11 +31,11 @@ public class Config {
 	private static final List<String> DEFAULT_TAG_PREFERENCES = Arrays.asList("minecraft", "tconstruct", "tmechworks", "metalborn", "embers", "create", "immersiveengineering", "mekanism", "thermal");
 	public static final ConfigValue<List<? extends String>> TAG_PREFERENCES;
 
-	public static final ModConfigSpec CLIENT_SPEC, SERVER_SPEC;
+	public static final ModConfigSpec CLIENT_SPEC, COMMON_SPEC;
 
 	static {
     ModConfigSpec.Builder client = new ModConfigSpec.Builder();
-    ModConfigSpec.Builder server = new ModConfigSpec.Builder();
+    ModConfigSpec.Builder common = new ModConfigSpec.Builder();
 
 		// client options
     HEART_RENDERER = client
@@ -63,12 +63,12 @@ public class Config {
       .translation("config.mantle.fluidFallbackUseTextShader")
       .define("fluidFallbackUseTextShader", true);
 
-		// server options
-		TAG_PREFERENCES = server.comment("Preferences for outputs from tags used in automatic compat in recipes")
+		// common options
+		TAG_PREFERENCES = common.comment("Preferences for outputs from tags used in automatic compat in recipes")
                             .translation("config.mantle.tagPreferences")
                             .defineList("tagPreferences", DEFAULT_TAG_PREFERENCES, str -> true);
 
 		CLIENT_SPEC = client.build();
-		SERVER_SPEC = server.build();
+		COMMON_SPEC = common.build();
 	}
 }
